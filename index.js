@@ -93,6 +93,25 @@ class Client_connect{
       let request_promis = client.query(`DELETE FROM ${this.tablename} WHERE ${where.slice(0, -2)}`)
       this.request = await request_promis;
   }
+
+  async SPECIAL(jsn){
+    let textRequest = `SELECT nt.*
+    FROM "unusualShit" nt
+    INNER JOIN (
+        SELECT daytime, MAX(author) AS author
+        FROM "unusualShit"
+        WHERE (author = ${jsn[0]} OR author = ${jsn[1]} OR author = ${jsn[2]}) AND daytime >= '${jsn[3]}' AND daytime <= '${jsn[4]}'
+        GROUP BY daytime
+    ) nt2 ON nt.daytime = nt2.daytime AND nt.author = nt2.author`; 
+    console.log(textRequest);
+    let request_promis = client.query(textRequest);
+    this.result = await request_promis;
+    console.log(this.result.rows)
+    return this.result.rows;
+
+
+    //console.log(this.request)
+  }
 }
 
 
@@ -122,28 +141,17 @@ app.use("/getweek", async function(request, response){
 
     try{  
       let new_con = new Client_connect('unusualShit');
-      await new_con.GET({'keys': request.query.keys, 'where': {}, 'author': request.query.id}, 
-        request.query.start, 
-        request.query.end);
+      let sendThis = await new_con.SPECIAL([request.query.id, 
+          (parseInt(request.query.id / 100) * 100).toString(), 
+          (parseInt(request.query.id / 1000) * 1000).toString(), 
+          request.query.start, request.query.end]);
+      console.log(sendThis)
+      response.send(sendThis);
 
-      await new_con.GET({'keys': request.query.keys, 'where': {}, 'author': (parseInt(request.query.id / 100) * 100).toString()}, 
-        request.query.start, 
-        request.query.end);
-
-      let group = new_con.request;
-
-      await new_con.GET({'keys': request.query.keys, 'where': {}, 'author': (parseInt(request.query.id / 1000) * 1000).toString()}, 
-        request.query.start, 
-        request.query.end);
-
-      let pot = new_con.request;
-
-      let sumSend = personal.concat(group).concat(pot)
-      console.log(personal, group, pot);
-      response.send(sumSend);
     }
     catch(err){
       response.send(err);
+      throw(err);
     }
    }
   else{
