@@ -12,8 +12,8 @@ class AuthService {
         'password': passwordHashed,
         'username': username,
         'course': course,
-        'group': group,
-        'userid': userid,
+        'groupe': group,
+        'userid': userid + group * 100 + course * 1000,
         });
         return {
             user: {
@@ -26,37 +26,41 @@ class AuthService {
         await Model.GET({ 'keys': '*', 'where': {'username': username}});
         let userRecord = Model.request
         userRecord = userRecord[0];
-        //console.log(userRecord)
         if (!userRecord) {
           throw new Error('User not found')
         } 
         else {
             console.log(userRecord.password, password)
             const correctPassword = await argon.verify(userRecord.password, password);
+            //console.log('cp', correctPassword)
             if (!correctPassword) {
                 throw new Error('Incorrect password')
             }
+            let token = await this.generateJWT(userRecord);
             
-        
-            return {
-                user: {
-                    username: userRecord.username,
-                },
-                token: this.generateJWT(userRecord),
-        
-            }
+            return token;
         
         }
     }
 
     async generateJWT(user){
-        let data = {
-            
+
+        const data =  {
+          id: user.id,
+          username: user.usernamename,
+          userid: user.userid
         }
+        const signature = user.password;
+        const expiration = '6h';
+    
+        return jwt.sign({ data, }, signature, { expiresIn: expiration });
+      
     }
 }
 
 
-let auth = new AuthService()
-auth.SignUp('user', 'password', 1, 1, 1)
-auth.Login('user', 'password')
+async function tests(){
+    let auth = new AuthService()
+    //auth.SignUp('user', 'password', 1, 1, 1)
+    let a = auth.Login('user', 'password')
+}

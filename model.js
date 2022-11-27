@@ -18,7 +18,7 @@ class Client_connect{
   }
 
   async GET(jsn, start = false, end = false){ 
-      console.log('->', jsn)
+      //console.log('->', jsn)
       jsn.keys = jsn.keys.toString();
 
       let where_search_str = ''
@@ -37,10 +37,11 @@ class Client_connect{
         }
       else{  
         request_promis = client.query(`SELECT ${jsn.keys} FROM "${this.tablename}"${where_search_str}`)
-        console.log(`SELECT ${jsn.keys} FROM "${this.tablename}"${where_search_str}`) 
+        //console.log(`SELECT ${jsn.keys} FROM "${this.tablename}"${where_search_str}`) 
       }
       let request = await request_promis;
       this.request = request.rows;
+      return request.rows;
   }
 
   async PUST(jsn){
@@ -48,13 +49,13 @@ class Client_connect{
           let set = '';
           for(let i of Object.keys(jsn)){
               if(jsn[i] != null)
-                  set += i.toString() + " = '" + jsn[i].toString() + "' AND ";
+                  set += i.toString() + " = '" + jsn[i].toString() + "',";
               else
-                  set += i.toString() + ' = null AND ';
+                  set += i.toString() + ' = null,';
           }
-          textRequest = `UPDATE ${this.tablename} SET ${set.slice(0, -4)} WHERE id = ${jsn.id}`
+          let textRequest = `UPDATE ${this.tablename} SET ${set.slice(0, -2)} WHERE id = ${jsn.id}`
           console.log(textRequest)
-          //let request_promis = client.query(textRequest);
+          let request_promis = client.query(textRequest);
           return 0
           let request = await request_promis;
           this.request = request;
@@ -71,14 +72,16 @@ class Client_connect{
           }
           keys = keys.toString();
           values = values.toString();
-          let request_promis = client.query(`INSERT INTO ${this.tablename} (${keys}) VALUES (${values})`);
+          let textRequest = `INSERT INTO "${this.tablename}" (${keys}) VALUES (${values})`;
+          console.log(textRequest);
+          let request_promis = client.query(textRequest);
           let request = await request_promis;
-          console.log(`INSERT INTO ${this.tablename} (${keys}) VALUES (${values})`);
-          console.log(request) 
+          //console.log(`INSERT INTO ${this.tablename} (${keys}) VALUES (${values})`);
+          //console.log(request) 
           this.request = request;
 	      
   }
-  
+}
   async DELETE(jsn){
       let where = ''
       for(let i of Object.keys(jsn)){
@@ -103,7 +106,7 @@ class Client_connect{
     console.log(textRequest);
     let request_promis = client.query(textRequest);
     this.result = await request_promis;
-    console.log(this.result.rows)
+    //console.log(this.result.rows)
     return this.result.rows;
 
 
@@ -111,5 +114,12 @@ class Client_connect{
   }
 }
 
+async function testing(){
+    let Model = new Client_connect('users')
+    let username = 'user'
+    let ans = await Model.GET({ 'keys': '*', 'where': {/*'username': username*/}});
+    //console.log(ans);
+}
+testing()
 
 module.exports = {Client_connect}
