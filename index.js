@@ -16,7 +16,7 @@ app.use(session({
 
 var bodyParser = require('body-parser');
 
-const {Client_connect} = require('./model.js')
+const {Client_connect} = require('./model/model.js')
 
 
 app.use("//", async function(request, response){
