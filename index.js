@@ -2,12 +2,27 @@ const express = require("express");
 const app = express();
 
 const session = require('express-session');
+
+app.use(session({
+	secret: 'secret',
+	resave: true,
+	saveUninitialized: true,
+  rolling: true,
+  cookie: {
+    maxAge: 10 * 60 * 1000,
+    httpOnly: false,
+  },
+}));
+
 var bodyParser = require('body-parser');
 
 const {Client_connect} = require('./model.js')
 
 
 app.use("//", async function(request, response){
+  if(!request.session.admin){
+    response.send(401)
+  }
     
   if(request.method == "POST" || request.method == "PUT"){ 
     let new_con = new Client_connect(request.body.table)
@@ -28,9 +43,12 @@ app.use("//", async function(request, response){
 })
 
 app.use("/getweek", async function(request, response){
+  if(!request.session.logedin){
+    response.send(401)
+  }
 
   if(request.method == "GET"){
-    console.log('hi, im here')
+    //console.log('hi, im here')
 
     try{  
       let new_con = new Client_connect('unusualShit');
@@ -53,6 +71,20 @@ app.use("/getweek", async function(request, response){
     response.send(202)
   }
   
+})
+
+app.use("/auth", async function(request, response){
+  let username = request.query.username;
+  let password = request.query.password;
+  let new_con = new Client_connect('users')
+  await new_con.GET({'keys': '*', 'where': {'username': username, 'password': password}});
+  if(new_con.request.length == 1){
+    request.session.logedin = true;
+    response.send(true);
+  }
+  else{
+    response.send(false);
+  }
 })
 
 app.listen(4444) 

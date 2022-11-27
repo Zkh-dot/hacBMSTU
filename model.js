@@ -25,9 +25,9 @@ class Client_connect{
       if(Object.keys(jsn.where).length != 0)
           where_search_str = ' WHERE '
           for(let i of Object.keys(jsn.where)){
-              where_search_str += i.toString() + "='" + jsn.where[i] + "',";
+              where_search_str += i.toString() + "='" + jsn.where[i] + "' and ";
           }
-          where_search_str = where_search_str.slice(0, -1);
+          where_search_str = where_search_str.slice(0, -5);
       
       let request_promis;
       if(start && end){
@@ -36,8 +36,8 @@ class Client_connect{
           console.log(textRequest)
         }
       else{  
-        request_promis = client.query(`SELECT ${jsn.keys} FROM ${this.tablename}${where_search_str}`)
-        console.log(`SELECT ${jsn.keys} FROM ${this.tablename}${where_search_str}`) 
+        request_promis = client.query(`SELECT ${jsn.keys} FROM "${this.tablename}"${where_search_str}`)
+        console.log(`SELECT ${jsn.keys} FROM "${this.tablename}"${where_search_str}`) 
       }
       let request = await request_promis;
       this.request = request.rows;
@@ -48,12 +48,14 @@ class Client_connect{
           let set = '';
           for(let i of Object.keys(jsn)){
               if(jsn[i] != null)
-                  set += i.toString() + " = '" + jsn[i].toString() + "', ";
+                  set += i.toString() + " = '" + jsn[i].toString() + "' AND ";
               else
-                  set += i.toString() + ' = null, ';
+                  set += i.toString() + ' = null AND ';
           }
-          let request_promis = client.query(`UPDATE ${this.tablename} SET ${set.slice(0, -2)} WHERE id = ${jsn.id}`);
-          console.log(`UPDATE ${this.tablename} SET ${set.slice(0, -2)} WHERE id = ${jsn.id}`);
+          textRequest = `UPDATE ${this.tablename} SET ${set.slice(0, -4)} WHERE id = ${jsn.id}`
+          console.log(textRequest)
+          //let request_promis = client.query(textRequest);
+          return 0
           let request = await request_promis;
           this.request = request;
       }
@@ -74,7 +76,7 @@ class Client_connect{
           console.log(`INSERT INTO ${this.tablename} (${keys}) VALUES (${values})`);
           console.log(request) 
           this.request = request;
-      }
+	      
   }
   
   async DELETE(jsn){
@@ -108,5 +110,6 @@ class Client_connect{
     //console.log(this.request)
   }
 }
+
 
 module.exports = {Client_connect}
