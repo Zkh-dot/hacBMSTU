@@ -1,4 +1,4 @@
-const {Client_connect} = require('./model.js')
+const {Client_connect} = require('../model/model.js')
 const argon = require('argon2');
 const jwt = require('jsonwebtoken')
 
@@ -30,7 +30,7 @@ class AuthService {
           throw new Error('User not found')
         } 
         else {
-            console.log(userRecord.password, password)
+            //console.log(userRecord.password, password)
             const correctPassword = await argon.verify(userRecord.password, password);
             //console.log('cp', correctPassword)
             if (!correctPassword) {
@@ -38,7 +38,7 @@ class AuthService {
             }
             let token = await this.generateJWT(userRecord);
             
-            return token;
+            return [token, userRecord.userid];
         
         }
     }
@@ -50,7 +50,7 @@ class AuthService {
           username: user.usernamename,
           userid: user.userid
         }
-        const signature = user.password;
+        const signature = 'secret';
         const expiration = '6h';
     
         return jwt.sign({ data, }, signature, { expiresIn: expiration });
@@ -59,8 +59,21 @@ class AuthService {
 }
 
 
-async function tests(){
+async function tokenDiller(login, password){
     let auth = new AuthService()
+    let response;
     //auth.SignUp('user', 'password', 1, 1, 1)
-    let a = auth.Login('user', 'password')
+    try{
+        response = await auth.Login(login, password)
+    }
+    catch(e){
+        response = false
+    }
+    
+    //console.log(response)
+    return response;
 }
+
+//console.log('token:', tokenDiller('user', 'password'))
+
+module.exports = { AuthService }
