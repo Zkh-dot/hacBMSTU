@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const path = require('path');
 
 const session = require('express-session');
 
@@ -136,5 +137,13 @@ app.use("/reg", async function(request, response){
   let registerConect = new AuthService();
   response.send(registerConect.SignUp(username, password, course, group, userid))
 })
- 
+app.use("/front", async function(request, response){
+  if(request.session.username){
+    response.send('ok')
+  }
+  else{
+    response.sendFile(path.join(__dirname + '/views/login.html'));
+  }
+}) 
+
 app.listen(4444) 
